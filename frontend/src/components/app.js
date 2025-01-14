@@ -1,16 +1,21 @@
 import React, { Component } from "react";
-import { createRoot } from "react-dom/client"; // Use createRoot from react-dom/client
+import { createRoot } from "react-dom/client";
+
+import HomePage from "./homePage";
 
 export default class App extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+        
+    }
   }
 
   render() {
-    return <h1>Testing</h1>;
+    return <HomePage/>;
   }
 }
 
 const appDiv = document.getElementById("app");
-const root = createRoot(appDiv); // Create a root
-root.render(<App />); // Render the App component
+const root = createRoot(appDiv); 
+root.render(<App message="Hello, this is a prop!" />); 
