@@ -3,9 +3,10 @@ import React, { Component } from "react"
 export default class RoomJoinPage extends Component {
     constructor(props){
         super(props);
+
     }
 
     render(){
-        <p> This is room page </p>
+        return <p>This Room Join Page page</p>
     }
 }
