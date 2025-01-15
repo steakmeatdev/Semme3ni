@@ -75,10 +75,11 @@ export default class RoomJoinPage extends Component {
         code: this.state.roomCode,
       }),
     };
-    fetch("/api/join-room", requestOptions)
+    fetch("/api/join", requestOptions)
       .then((response) => {
         if (response.ok) {
-          this.props.history.push(`/room/${this.state.roomCode}`);
+            // props.history is an object containing navigation history
+          this.props.history.push("/room/${this.state.roomCode}");
         } else {
           this.setState({ error: "Room not found." });
         }
