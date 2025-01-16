@@ -1,13 +1,20 @@
 import React, { Component } from "react";
 import { Grid, Button, ButtonGroup, Typography } from "@mui/material";
-import { Link } from "react-router-dom"; // Missing import added here
+import { Link } from "react-router-dom";
+
+
+import { createRoot } from "react-dom/client";
+import RoomJoinPage from "./RoomJoinPage";
+import CreateRoomPage from "./CreateRoomPage";
+import Room from "./Room"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 export default class App extends Component {
     constructor(props) {
         super(props);
     }
 
-    render() {
+    renderHomePage() {
         return (
             <Grid container spacing={3}>
                 <Grid item xs={12} align="center">
@@ -27,5 +34,18 @@ export default class App extends Component {
                 </Grid>
             </Grid>
         );
+    }
+
+    render() {
+      return (
+        <Router>
+          <Routes>
+            <Route path="" element={this.renderHomePage()} />
+            <Route path="/join" element={<RoomJoinPage />} />
+            <Route path="/create" element={<CreateRoomPage />} />
+            <Route path="/room/:roomCode" element={<Room />} />
+          </Routes>
+        </Router>
+      );
     }
 }
