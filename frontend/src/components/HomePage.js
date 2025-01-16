@@ -7,11 +7,21 @@ import { createRoot } from "react-dom/client";
 import RoomJoinPage from "./RoomJoinPage";
 import CreateRoomPage from "./CreateRoomPage";
 import Room from "./Room"
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 export default class App extends Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+          roomCode: null,
+        }
+    }
+
+    async componentDidMount(){
+      fetch("/api/userinroom").then((response) => response.json()).then((data) => {this.setState({
+        roomCode: data.code
+      })})
     }
 
     renderHomePage() {
@@ -39,13 +49,14 @@ export default class App extends Component {
     render() {
       return (
         <Router>
-          <Routes>
-            <Route path="" element={this.renderHomePage()} />
-            <Route path="/join" element={<RoomJoinPage />} />
-            <Route path="/create" element={<CreateRoomPage />} />
-            <Route path="/room/:roomCode" element={<Room />} />
-          </Routes>
-        </Router>
+        <Routes>
+          <Route path="/"
+            element={ this.state.roomCode ? (<Navigate to={`/room/${this.state.roomCode}`} />) : (this.renderHomePage())} />
+          <Route path="/join" element={<RoomJoinPage />} />
+          <Route path="/create" element={<CreateRoomPage />} />
+          <Route path="/room/:roomCode" element={<Room />} />
+        </Routes>
+      </Router>
       );
     }
 }

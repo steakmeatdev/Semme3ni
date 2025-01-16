@@ -4,6 +4,7 @@ from .models import Room
 from .serializers import RoomSerializer, CreateRoomSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import JsonResponse
 
 
 # Set up a generic view with generics.ListAPIView to display all the Room objects
@@ -85,3 +86,12 @@ class JoinRoom(APIView):
             return Response({"Bad request":"Invalid Room Code"}, status=status.HTTP_400_BAD_REQUEST)
             
         return Response({"Bad request":"post data"}, status=status.HTTP_400_BAD_REQUEST)
+
+class UserInRoom(APIView):
+    def get(self, request, format=None):
+
+        data = {
+            "code": self.request.session.get("room_code")
+        }
+        # Since I used a normal dictionnary, I will just use the JsonResponse
+        return JsonResponse(data, status=status.HTTP_200_OK)
