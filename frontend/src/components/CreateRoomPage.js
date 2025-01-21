@@ -8,11 +8,19 @@ import FormControl from "@mui/material/FormControl";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
-import { Link } from "react-router-dom"; // Added import
+import { Link } from "react-router-dom";
+
+function RoomWrapper(props) {
+  // extracting the room code from the URL
+  const params = useParams();
+
+  const navigate = useNavigate();
+
+  return <CreateRoomPage {...props} params={params} navigate={navigate} />;
+}
 
 export default class CreateRoomPage extends Component {
-
-// Initial number of votes is 2
+  // Initial number of votes is 2
   defaultVotes = 2;
 
   constructor(props) {
@@ -23,16 +31,14 @@ export default class CreateRoomPage extends Component {
       votesToSkip: this.defaultVotes,
     };
 
-    // binding (merging) the methods to the class and making access to "this" keyword
     this.handleRoomButtonPressed = this.handleRoomButtonPressed.bind(this);
     this.handleVotesChange = this.handleVotesChange.bind(this);
     this.handleGuestCanPauseChange = this.handleGuestCanPauseChange.bind(this);
   }
 
-
   handleVotesChange(e) {
     this.setState({
-       votesToSkip: e.target.value,
+      votesToSkip: e.target.value,
     });
   }
 
@@ -42,22 +48,21 @@ export default class CreateRoomPage extends Component {
     });
   }
 
+  // Creating a request for the server to save new room object
   handleRoomButtonPressed() {
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        // fields match Room's model
         votes_to_skip: this.state.votesToSkip,
         guest_can_pause: this.state.guestCanPause,
       }),
     };
+
     fetch("/api/create", requestOptions)
       .then((response) => response.json())
-
-      // Redirecting to created room page
-      .then((data) => this.props.history.push("/room/" + data.code)
-    );
+      // Redirecting to created room page after creation successful
+      .then((data) => this.props.navigate("/room/" + data.code));
   }
 
   render() {

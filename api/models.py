@@ -2,6 +2,7 @@ from django.db import models
 import string
 import random
 
+# Function to generate random codes for the rooms
 
 def generate_unique_code():
     length = 6
@@ -12,10 +13,11 @@ def generate_unique_code():
         # Verify whether a room with the generated code exists
         if Room.objects.filter(code=code).count() == 0:
             break
-    return code  # Moved return outside of while loop
+    return code
 
 # Room model
 class Room(models.Model):
+
     code = models.CharField(max_length=50, unique=True, blank=True)
 
     host = models.CharField(max_length=50, unique=True)
@@ -26,7 +28,7 @@ class Room(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     
-
+    # Function to save room object in the database
     def save(self, *args, **kwargs):
         if not self.code:
             self.code = generate_unique_code()  # Generate the unique code if not provided
