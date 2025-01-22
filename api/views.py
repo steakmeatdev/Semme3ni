@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics, status
 from .models import Room
-from .serializers import RoomSerializer, CreateRoomSerializer
+from .serializers import RoomSerializer, CreateRoomSerializer, UpdateRoomSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
@@ -25,9 +25,10 @@ class GetRoom(APIView):
                 data["is_host"] = self.request.session.session_key == room[0].host
                 # Returning the room instance
                 return Response(data, status=status.HTTP_200_OK)
-            return Response({"Room Not Found":"Invalid Room Code"})
-        return({"Bad request":"Code parameter not found"})
+            return Response({"Room Not Found":"Invalid Room Code"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"Bad request":"Code parameter not found"}, status=status.HTTP_400_BAD_REQUEST)
     
+# Creating a new room using the guest_can_pause and votes_to_skip, the other attributes are generated automatically 
 
 class CreateRoomView(APIView):
     serializer_class = CreateRoomSerializer
@@ -80,7 +81,7 @@ class JoinRoom(APIView):
         return Response({"Bad request": "Post data missing"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Checking f user is in a room and if so returning the room code
+# Checking if user is in a room and if so returning the room code
 
 class UserInRoom(APIView):
     def get(self, request, format=None):
@@ -93,7 +94,7 @@ class UserInRoom(APIView):
 
 
 
-# Endpoint for leaving a Room by simply removing the room code from session object
+# Endpoint for leaving a Room by simply removing the room code from session object or the whole room if the user is host (checking host)
 
 class LeaveRoom(APIView):
     def post(self, request, format=None):
@@ -107,3 +108,28 @@ class LeaveRoom(APIView):
                 room.delete()
 
         return Response({'Message': 'Success'}, status=status.HTTP_200_OK)
+
+ 
+    
+class UpdateRoom(APIView):
+
+    serializer_class = UpdateRoomSerializer
+    
+    def patch(self, request, format=None):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            code = serializer.validated_data.get("code")
+            queryset = Room.objects.filter(code = code)
+            if queryset.exists():
+                room_result = queryset[0]
+                if room_result.host != self.request.session.session_key:
+                    return Response("Message: You are not the host of this room", status = status.HTTP_403_FORBIDDEN)
+                else:
+                    room_result.guest_can_pause = serializer.validated_data.get("guest_can_pause")
+                    room_result.votes_to_skip = serializer.validated_data.get("votes_to_skip")
+                    room_result.save(update_fields=['guest_can_pause', 'votes_to_skip'])
+                    return Response(RoomSerializer(room_result).data, status=status.HTTP_200_OK)
+            else:
+                return Response("Message: Room not found", status = status.HTTP_404_NOT_FOUND)
+        else :
+            return Response("message: invalid request data", status=status.HTTP_400_BAD_REQUEST)

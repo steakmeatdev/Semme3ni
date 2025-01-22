@@ -8,13 +8,19 @@ function Room({ clearRoomCode }) {
 
   const [votesToSkip, setVotesToSkip] = useState(2);
   const [guestCanPause, setGuestCanPause] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [isHost, setIsHost] = useState(false);
 
-  // Fetch room details
+  const updateShowSettings = (value) => {
+    setShowSettings(true);
+  };
+
   const getRoomDetails = () => {
     fetch(`/api/get?code=${roomCode}`)
       .then((response) => {
         if (!response.ok) {
+          clearRoomCode();
+          navigate("/");
           throw new Error("Invalid code");
         }
         return response.json();
@@ -27,7 +33,7 @@ function Room({ clearRoomCode }) {
       .catch((error) => console.error("Error fetching room details:", error));
   };
 
-  // Leave the room
+  // Leaving the room and redirecting to home page
   const leaveButtonPressed = () => {
     const requestOptions = {
       method: "POST",
@@ -49,6 +55,24 @@ function Room({ clearRoomCode }) {
   useEffect(() => {
     getRoomDetails();
   }, []);
+
+  // Rendering Settings button:
+
+  const renderSettingsButton = () => {
+    return (
+      <Grid item xs={12} align="center">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => updateShowSettings(true)}
+        >
+          Settings
+        </Button>
+      </Grid>
+    );
+  };
+
+  const renderSettings = () => {};
 
   return (
     <Grid container spacing={1}>
@@ -72,6 +96,7 @@ function Room({ clearRoomCode }) {
           Host: {isHost.toString()}
         </Typography>
       </Grid>
+      {isHost ? renderSettingsButton() : null}
       <Grid item xs={12} align="center">
         <Button
           variant="contained"
