@@ -87,7 +87,9 @@ function Room({ clearRoomCode }) {
             votesToSkip_={votesToSkip}
             guestCanPause_={guestCanPause}
             roomCode_={roomCode}
-            updateCallback={() => {}}
+            updateCallback={() => {
+              getRoomDetails();
+            }}
           />
         </Grid>
         <Grid item xs={12} align="center">

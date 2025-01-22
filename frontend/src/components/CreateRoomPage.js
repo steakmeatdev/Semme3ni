@@ -75,6 +75,7 @@ const CreateRoomPage = ({
       } else {
         setErrorMessage("Error updating room");
       }
+      updateCallback();
     });
   };
 
