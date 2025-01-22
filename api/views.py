@@ -34,6 +34,7 @@ class CreateRoomView(APIView):
 
     def post(self, request):
         # Check active session
+        print(self.request.session.session_key)
         if not self.request.session.session_key:
             self.request.session.create()
 
@@ -55,7 +56,8 @@ class CreateRoomView(APIView):
                 room = Room(host=host, guest_can_pause=guest_can_pause, votes_to_skip=votes_to_skip)
                 room.save()
                 self.request.session["room_code"] = room.code
-            return Response(CreateRoomSerializer(room).data, status=status.HTTP_201_CREATED)
+            print(RoomSerializer(room).data)
+            return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         

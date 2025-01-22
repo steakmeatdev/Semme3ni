@@ -1,44 +1,32 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import { Grid, Button, ButtonGroup, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
-
-import { createRoot } from "react-dom/client";
-import RoomJoinPage from "./RoomJoinPage";
-import CreateRoomPage from "./CreateRoomPage";
-import Room from "./Room";
 import {
+  Link,
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
+import RoomJoinPage from "./RoomJoinPage";
+import CreateRoomPage from "./CreateRoomPage";
+import Room from "./Room";
 
-export default class App extends Component {
-  constructor(props) {
-    super(props);
+function App() {
+  const [roomCode, setRoomCode] = useState(null);
 
-    this.state = {
-      roomCode: null,
-    };
-  }
-
-  async componentDidMount() {
+  useEffect(() => {
     fetch("/api/userinroom")
       .then((response) => response.json())
       .then((data) => {
-        this.setState({
-          roomCode: data.code,
-        });
+        setRoomCode(data.code);
       });
-  }
+  }, []);
 
-  clearRoomCode() {
-    this.setState({
-      roomCode: null,
-    });
-  }
+  const clearRoomCode = () => {
+    setRoomCode(null);
+  };
 
-  renderHomePage() {
+  const renderHomePage = () => {
     return (
       <Grid container spacing={3}>
         <Grid item xs={12} align="center">
@@ -58,30 +46,26 @@ export default class App extends Component {
         </Grid>
       </Grid>
     );
-  }
+  };
 
-  render() {
-    return (
-      <Router>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              this.state.roomCode ? (
-                <Navigate to={`/room/${this.state.roomCode}`} />
-              ) : (
-                this.renderHomePage()
-              )
-            }
-          />
-          <Route path="/join" element={<RoomJoinPage />} />
-          <Route path="/create" element={<CreateRoomPage />} />
-          <Route
-            path="/room/:roomCode"
-            element={<Room clearRoomCodee={this.clearRoomCode} />}
-          />
-        </Routes>
-      </Router>
-    );
-  }
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            roomCode ? <Navigate to={`/room/${roomCode}`} /> : renderHomePage()
+          }
+        />
+        <Route path="/join" element={<RoomJoinPage />} />
+        <Route path="/create" element={<CreateRoomPage />} />
+        <Route
+          path="/room/:roomCode"
+          element={<Room clearRoomCode={clearRoomCode} />}
+        />
+      </Routes>
+    </Router>
+  );
 }
+
+export default App;
