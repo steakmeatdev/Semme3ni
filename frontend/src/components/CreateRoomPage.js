@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
@@ -9,22 +9,30 @@ import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { Link, useNavigate } from "react-router-dom";
+import { Collapse } from "@mui/material";
 
-const CreateRoomPage = () => {
-  const defaultVotes = 2;
-  const [guestCanPause, setGuestCanPause] = useState(true);
-  const [votesToSkip, setVotesToSkip] = useState(defaultVotes);
-
+const CreateRoomPage = ({
+  update_ = false,
+  votesToSkip_ = 2,
+  guestCanPause_ = true,
+  roomCode_ = null,
+  updateCallback = () => {},
+}) => {
+  const [guestCanPause, setGuestCanPause] = useState(guestCanPause_);
+  const [votesToSkip, setVotesToSkip] = useState(votesToSkip_);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
   const handleVotesChange = (e) => {
-    setVotesToSkip(e.target.value);
+    setVotesToSkip(Number(e.target.value));
   };
 
   const handleGuestCanPauseChange = (e) => {
     setGuestCanPause(e.target.value === "true");
   };
 
+  // Handle Create room Button pressed
   const handleRoomButtonPressed = () => {
     const requestOptions = {
       method: "POST",
@@ -49,11 +57,80 @@ const CreateRoomPage = () => {
       });
   };
 
+  // Handle update room Button pressed
+  const handleUpdateRoomButtonPressed = () => {
+    const requestOptions = {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        votes_to_skip: votesToSkip,
+        guest_can_pause: guestCanPause,
+        code: roomCode_,
+      }),
+    };
+
+    fetch("/api/update", requestOptions).then((response) => {
+      if (response.ok) {
+        setSuccessMessage("Room updated successfully!");
+      } else {
+        setErrorMessage("Error updating room");
+      }
+    });
+  };
+
+  // Create page Buttons
+  const RenderCreateButtons = () => {
+    return (
+      <Grid spacing={1}>
+        <Grid item xs={12} align="center">
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={handleRoomButtonPressed}
+          >
+            Create A Room
+          </Button>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Button color="secondary" variant="contained" component={Link} to="/">
+            Back
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  };
+
+  // Update page Buttons
+  const RenderUpdateButtons = () => {
+    return (
+      <Grid spacing={1}>
+        <Grid item xs={12} align="center">
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={handleUpdateRoomButtonPressed}
+          >
+            Update A Room
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  };
+
+  const title = update_ ? "Update Room" : "Create a Room";
   return (
     <Grid container spacing={1}>
       <Grid item xs={12} align="center">
         <Typography component="h4" variant="h4">
-          Create A Room
+          <Collapse in={errorMessage != "" || successMessage != ""}>
+            {successMessage}
+          </Collapse>
+        </Typography>
+      </Grid>
+
+      <Grid item xs={12} align="center">
+        <Typography component="h4" variant="h4">
+          {title}
         </Typography>
       </Grid>
       <Grid item xs={12} align="center">
@@ -63,7 +140,7 @@ const CreateRoomPage = () => {
           </FormHelperText>
           <RadioGroup
             row
-            defaultValue="true"
+            defaultValue={guestCanPause.toString()}
             onChange={handleGuestCanPauseChange}
           >
             <FormControlLabel
@@ -87,31 +164,18 @@ const CreateRoomPage = () => {
             required
             type="number"
             onChange={handleVotesChange}
-            defaultValue={defaultVotes}
+            defaultValue={votesToSkip}
             inputProps={{
               min: 1,
               style: { textAlign: "center" },
             }}
           />
           <FormHelperText>
-            <div align="center">Votes Required To Skipp Song</div>
+            <div align="center">Votes Required To Skip Song</div>
           </FormHelperText>
         </FormControl>
       </Grid>
-      <Grid item xs={12} align="center">
-        <Button
-          color="primary"
-          variant="contained"
-          onClick={handleRoomButtonPressed}
-        >
-          Create A Room
-        </Button>
-      </Grid>
-      <Grid item xs={12} align="center">
-        <Button color="secondary" variant="contained" to="/" component={Link}>
-          Back
-        </Button>
-      </Grid>
+      {update_ ? RenderUpdateButtons() : RenderCreateButtons()}
     </Grid>
   );
 };

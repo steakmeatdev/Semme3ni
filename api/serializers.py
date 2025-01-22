@@ -18,6 +18,6 @@ class UpdateRoomSerializer(serializers.ModelSerializer):
     # removing UniqueValidator for code
     code = serializers.CharField(validators=[])
     
-    class meta:
+    class Meta:
         model = Room
         fields = ("guest_can_pause","votes_to_skip", "code")
