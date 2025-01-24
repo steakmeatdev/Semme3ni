@@ -94,7 +94,7 @@ const CreateRoomPage = ({
         </Grid>
         <Grid item xs={12} align="center">
           <Button color="secondary" variant="contained" component={Link} to="/">
-            Back
+            Back to Room
           </Button>
         </Grid>
       </Grid>
