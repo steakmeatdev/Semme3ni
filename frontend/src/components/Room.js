@@ -12,6 +12,8 @@ function Room({ clearRoomCode }) {
   const [votesToSkip, setVotesToSkip] = useState(2);
   const [guestCanPause, setGuestCanPause] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
+
   const [isHost, setIsHost] = useState(false);
 
   // Updating showSettings state
@@ -36,6 +38,28 @@ function Room({ clearRoomCode }) {
         setIsHost(data.is_host);
       })
       .catch((error) => console.error("Error fetching room details:", error));
+
+    if (isHost) {
+      authenticateSpotify();
+    }
+  };
+
+  const authenticateSpotify = () => {
+    try {
+      const response = fetch("spotify/is-authenticated");
+      const data = response.json();
+
+      setSpotifyAuthenticated(data.status);
+
+      if (!data.status) {
+        const authResponse = fetch("spotify/get-auth-url");
+        const authData = authResponse.json();
+
+        window.location.replace(authData.url);
+      }
+    } catch (error) {
+      console.error("Error during Spotify authentication:", error);
+    }
   };
 
   // Button function to leave the room and redirecting to home page
