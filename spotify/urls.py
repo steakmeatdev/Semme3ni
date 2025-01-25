@@ -3,6 +3,5 @@ from .views import AuthURL
 
 
 urlpatterns = [
-    path("get-auth-url", AuthURL, name="index"),
- 
+    path("get-auth-url", AuthURL.as_view, name="index"),
 ]
