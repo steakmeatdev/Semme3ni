@@ -108,41 +108,42 @@ function Room({ clearRoomCode }) {
   // Renderning current Room page
   if (showSettings) {
     return renderSettings();
+  } else {
+    return (
+      <Grid container spacing={1}>
+        <Grid item xs={12} align="center">
+          <Typography variant="h4" component="h4">
+            Code: {roomCode}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Typography variant="h6" component="h6">
+            Votes: {votesToSkip}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Typography variant="h6" component="h6">
+            Guest Can Pause: {guestCanPause.toString()}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} align="center">
+          <Typography variant="h6" component="h6">
+            Host: {isHost.toString()}
+          </Typography>
+        </Grid>
+        {isHost ? renderSettingsButton() : null}
+        <Grid item xs={12} align="center">
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={leaveButtonPressed}
+          >
+            Leave Room
+          </Button>
+        </Grid>
+      </Grid>
+    );
   }
-  return (
-    <Grid container spacing={1}>
-      <Grid item xs={12} align="center">
-        <Typography variant="h4" component="h4">
-          Code: {roomCode}
-        </Typography>
-      </Grid>
-      <Grid item xs={12} align="center">
-        <Typography variant="h6" component="h6">
-          Votes: {votesToSkip}
-        </Typography>
-      </Grid>
-      <Grid item xs={12} align="center">
-        <Typography variant="h6" component="h6">
-          Guest Can Pause: {guestCanPause.toString()}
-        </Typography>
-      </Grid>
-      <Grid item xs={12} align="center">
-        <Typography variant="h6" component="h6">
-          Host: {isHost.toString()}
-        </Typography>
-      </Grid>
-      {isHost ? renderSettingsButton() : null}
-      <Grid item xs={12} align="center">
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={leaveButtonPressed}
-        >
-          Leave Room
-        </Button>
-      </Grid>
-    </Grid>
-  );
 }
 
 export default Room;

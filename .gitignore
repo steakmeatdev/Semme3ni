@@ -1,0 +1,19 @@
+# Ignore environment files
+.env
+
+# Ignore log files
+*.log
+
+# Ignore node_modules directory
+node_modules/
+
+# Ignore Python compiled files
+__pycache__/
+*.pyc
+
+# Ignore build files
+dist/
+build/
+
+spotify/credentials.py
+music_app/settings.py

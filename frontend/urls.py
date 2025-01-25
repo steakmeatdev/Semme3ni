@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import index  # Assuming index is the view serving your React app
+from .views import index
 
 urlpatterns = [
     path("", index, name="index"),

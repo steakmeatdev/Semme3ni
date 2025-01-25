@@ -10,6 +10,7 @@ import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { Link, useNavigate } from "react-router-dom";
 import { Collapse } from "@mui/material";
+import Alert from "@mui/material/Alert";
 
 const CreateRoomPage = ({
   update_ = false,
@@ -68,7 +69,7 @@ const CreateRoomPage = ({
         code: roomCode_,
       }),
     };
-
+    // Updating the Room instance in the database
     fetch("/api/update", requestOptions).then((response) => {
       if (response.ok) {
         setSuccessMessage("Room updated successfully!");
@@ -94,7 +95,7 @@ const CreateRoomPage = ({
         </Grid>
         <Grid item xs={12} align="center">
           <Button color="secondary" variant="contained" component={Link} to="/">
-            Back to Room
+            Back to Room page
           </Button>
         </Grid>
       </Grid>
@@ -123,8 +124,28 @@ const CreateRoomPage = ({
     <Grid container spacing={1}>
       <Grid item xs={12} align="center">
         <Typography component="h4" variant="h4">
-          <Collapse in={errorMessage != "" || successMessage != ""}>
-            {successMessage}
+          <Collapse in={!!errorMessage || !!successMessage}>
+            {successMessage ? (
+              <Alert
+                severity="success"
+                onClose={() => {
+                  setSuccessMessage("");
+                }}
+              >
+                {successMessage}
+                {}
+              </Alert>
+            ) : (
+              <Alert
+                severity="error"
+                onClose={() => {
+                  setErrorMessage("");
+                }}
+              >
+                {errorMessage}
+                {}
+              </Alert>
+            )}
           </Collapse>
         </Typography>
       </Grid>
