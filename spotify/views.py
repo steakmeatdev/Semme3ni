@@ -5,7 +5,7 @@ from .credentials import REDIRECT_URI, CLIENT_ID, CLIENT_SECRET
 from rest_framework.views import APIView
 from requests import Request, post
 from rest_framework.response import Response
-from util import update_or_create_user_tokens
+from util import update_or_create_user_tokens, is_spotify_authenticated
 
 # OAuth:
 
@@ -37,42 +37,49 @@ class AuthURL(APIView):
 
     # Handles the Spotify redirection after the user logs in and authorizes the app. It exchanges the authorization code for an access token and refresh token.
 
-    def spotify_callback(request, format=None):
-        code = request.GET.get("code")
-        error = request.GET.get("error")
 
-        # Requesting Token
-        response = post(
-            "https://accounts.spotify.com/api/token",
-            data={
-                "grant_type": "authorization_code",
-                "code": code,
-                "redirect_uri": REDIRECT_URI,
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-            },
-        ).json()
+def spotify_callback(request, format=None):
+    code = request.GET.get("code")
+    error = request.GET.get("error")
 
-        # Token data
-        access_token = response.get("access_token")
-        token_type = response.get("token_type")
-        refresh_token = response.get("refresh_token")
-        expires_in = response.get("expires_in")
-        error = response.get("error")
+    # Requesting Token
+    response = post(
+        "https://accounts.spotify.com/api/token",
+        data={
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": REDIRECT_URI,
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+        },
+    ).json()
 
-        # As always, if user doesn't have a session, they should create one
+    # Token data
+    access_token = response.get("access_token")
+    token_type = response.get("token_type")
+    refresh_token = response.get("refresh_token")
+    expires_in = response.get("expires_in")
+    error = response.get("error")
 
-        if not request.session.session_key:
-            request.session.create()
+    # As always, if user doesn't have a session, they should create one
 
-        # Using user session key to and token data create user token and save it
+    if not request.session.session_key:
+        request.session.create()
 
-        update_or_create_user_tokens(
-            request.session.session_key,
-            access_token,
-            token_type,
-            expires_in,
-            refresh_token,
-        )
+    # Using user session key to and token data create user token and save it
 
-        return redirect("frontend:")
+    update_or_create_user_tokens(
+        request.session.session_key,
+        access_token,
+        token_type,
+        expires_in,
+        refresh_token,
+    )
+
+    return redirect("frontend:homePage")
+
+
+class IsAuthenticated(APIView):
+    def get(self, request, format=None):
+        is_authenticated = is_spotify_authenticated(self.request.session.session_key)
+        return Response({"status": is_authenticated}, status=status.HTTP_200_OK)
