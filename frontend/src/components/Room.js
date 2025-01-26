@@ -2,23 +2,46 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Grid, Button, Typography } from "@mui/material";
 import CreateRoomPage from "./CreateRoomPage";
+import MusicPlayer from "./MusicPlayer";
 
 function Room({ clearRoomCode }) {
   // Getting the props and useNavigate
   const { roomCode } = useParams();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // This is equivalent to componentDidMount
+    const interval = setInterval(getCurrentSong, 1000);
+
+    // This is equivalent to componentWillUnmount
+    return () => clearInterval(interval);
+  }, []);
+
   // State variables
   const [votesToSkip, setVotesToSkip] = useState(2);
   const [guestCanPause, setGuestCanPause] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
-
   const [isHost, setIsHost] = useState(false);
+  const [song, setSong] = useState("");
 
   // Updating showSettings state
   const updateShowSettings = (value) => {
     setShowSettings(value);
+  };
+
+  // ------------------------------ FUNCTIONS -------------------------
+  //////////////////////////////////////////////////////////////////////
+
+  const getCurrentSong = async () => {
+    const response = await fetch("/spotify/current-song");
+
+    if (!response.ok) {
+      return {};
+    } else {
+      const data = await response.json();
+    }
+    setSong(data);
   };
 
   // getting the Room details using provided code in the URL
@@ -35,7 +58,6 @@ function Room({ clearRoomCode }) {
       }
 
       const data = await response.json();
-      console.log(data);
 
       // Update states
       setVotesToSkip(data.votes_to_skip);
@@ -44,7 +66,6 @@ function Room({ clearRoomCode }) {
 
       // If the user is the host, authenticate with Spotify
       if (data.is_host) {
-        console.log("It's Host");
         authenticateSpotify(); // Ensure this function is defined and works properly
       }
     } catch (error) {
@@ -52,11 +73,11 @@ function Room({ clearRoomCode }) {
     }
   };
 
+  // Verify if user is authenticated
   const authenticateSpotify = async () => {
     try {
       const response = await fetch("/spotify/isauthenticated");
 
-      console.log(response);
       console.log("Content-Type:", response.headers.get("content-type"));
 
       const data = await response.json();
@@ -100,7 +121,9 @@ function Room({ clearRoomCode }) {
     getRoomDetails();
   }, []);
 
-  // Rendering Settings button:
+  //////////////////////////////////////////////////////////////////////
+
+  // Function to render Settings button (modifies state of settings)
   const renderSettingsButton = () => {
     return (
       <Grid item xs={12} align="center">
@@ -115,7 +138,7 @@ function Room({ clearRoomCode }) {
     );
   };
 
-  // Rendering Settings page
+  // Function to Render Settings page
   const renderSettings = () => {
     return (
       <Grid container spacing={1}>
@@ -154,16 +177,7 @@ function Room({ clearRoomCode }) {
             Code: {roomCode}
           </Typography>
         </Grid>
-        <Grid item xs={12} align="center">
-          <Typography variant="h6" component="h6">
-            Votes: {votesToSkip}
-          </Typography>
-        </Grid>
-        <Grid item xs={12} align="center">
-          <Typography variant="h6" component="h6">
-            Guest Can Pause: {guestCanPause.toString()}
-          </Typography>
-        </Grid>
+        <MusicPlayer {...song} />
         <Grid item xs={12} align="center">
           <Typography variant="h6" component="h6">
             Host: {isHost.toString()}

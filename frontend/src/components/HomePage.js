@@ -10,6 +10,7 @@ import {
 import RoomJoinPage from "./RoomJoinPage";
 import CreateRoomPage from "./CreateRoomPage";
 import Room from "./Room";
+import MusicPlayer from "./MusicPlayer";
 
 function App() {
   const [roomCode, setRoomCode] = useState(null);
