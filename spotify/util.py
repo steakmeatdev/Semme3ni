@@ -7,7 +7,8 @@ from requests import post
 
 def get_user_tokens(session_id):
     user_tokens = SpotifyToken.objects.filter(user=session_id)
-
+    print("hello")
+    print(user_tokens)
     if user_tokens.exists():
         return user_tokens[0]
     else:
@@ -43,6 +44,7 @@ def update_or_create_user_tokens(
 
 
 def is_spotify_authenticated(session_id):
+    print("hello")
     tokens = get_user_tokens(session_id)
     if tokens:
         exipry = tokens.expires_in

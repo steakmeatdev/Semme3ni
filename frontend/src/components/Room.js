@@ -22,38 +22,52 @@ function Room({ clearRoomCode }) {
   };
 
   // getting the Room details using provided code in the URL
-  const getRoomDetails = () => {
-    fetch(`/api/get?code=${roomCode}`)
-      .then((response) => {
-        if (!response.ok) {
-          clearRoomCode();
-          navigate("/");
-          throw new Error("Invalid code");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setVotesToSkip(data.votes_to_skip);
-        setGuestCanPause(data.guest_can_pause);
-        setIsHost(data.is_host);
-      })
-      .catch((error) => console.error("Error fetching room details:", error));
+  const getRoomDetails = async () => {
+    try {
+      const response = await fetch(`/api/get?code=${roomCode}`);
 
-    if (isHost) {
-      authenticateSpotify();
+      // console.log("Content-Type:", response.headers.get("content-type"));
+
+      if (!response.ok) {
+        clearRoomCode();
+        navigate("/");
+        throw new Error("Invalid code");
+      }
+
+      const data = await response.json();
+      console.log(data);
+
+      // Update states
+      setVotesToSkip(data.votes_to_skip);
+      setGuestCanPause(data.guest_can_pause);
+      setIsHost(data.is_host);
+
+      // If the user is the host, authenticate with Spotify
+      if (data.is_host) {
+        console.log("It's Host");
+        authenticateSpotify(); // Ensure this function is defined and works properly
+      }
+    } catch (error) {
+      console.error("Error fetching room details:", error);
     }
   };
 
-  const authenticateSpotify = () => {
+  const authenticateSpotify = async () => {
     try {
-      const response = fetch("spotify/is-authenticated");
-      const data = response.json();
+      const response = await fetch("/spotify/isauthenticated");
+
+      console.log(response);
+      console.log("Content-Type:", response.headers.get("content-type"));
+
+      const data = await response.json();
+
+      console.log(data);
 
       setSpotifyAuthenticated(data.status);
 
       if (!data.status) {
-        const authResponse = fetch("spotify/get-auth-url");
-        const authData = authResponse.json();
+        const authResponse = await fetch("/spotify/get-auth-url");
+        const authData = await authResponse.json();
 
         window.location.replace(authData.url);
       }

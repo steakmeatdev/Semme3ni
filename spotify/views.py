@@ -3,18 +3,29 @@ from rest_framework import generics, status
 from .credentials import REDIRECT_URI, CLIENT_ID, CLIENT_SECRET
 
 from rest_framework.views import APIView
-from requests import Request, post
+from requests import Request, post, get
 from rest_framework.response import Response
-from .util import update_or_create_user_tokens, is_spotify_authenticated
+from .util import (
+    update_or_create_user_tokens,
+    is_spotify_authenticated,
+    get_user_tokens,
+)
 
 # OAuth:
 
 # Generates a Spotify authentication URL that the client can use to redirect users to Spotify for login and authorization
 
 
+class IsAuthenticated(APIView):
+    def get(self, request, format=None):
+        print("Got all the way here1")
+        is_authenticated = is_spotify_authenticated(self.request.session.session_key)
+        return Response({"status": is_authenticated}, status=status.HTTP_200_OK)
+
+
 class AuthURL(APIView):
     def get(self, request, format=None):
-
+        print("first")
         scopes = "user-read-playback-state user-modify-playback-state user-read-currently-playing"
 
         # Creating authoraziation URL for user
@@ -33,6 +44,7 @@ class AuthURL(APIView):
             .url
         )
 
+        # print(url)
         return Response({"url": url}, status=status.HTTP_200_OK)
 
     # Handles the Spotify redirection after the user logs in and authorizes the app. It exchanges the authorization code for an access token and refresh token.
@@ -77,9 +89,3 @@ def spotify_callback(request, format=None):
     )
 
     return redirect("frontend:homePage")
-
-
-class IsAuthenticated(APIView):
-    def get(self, request, format=None):
-        is_authenticated = is_spotify_authenticated(self.request.session.session_key)
-        return Response({"status": is_authenticated}, status=status.HTTP_200_OK)
