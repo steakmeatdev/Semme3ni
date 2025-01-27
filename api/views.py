@@ -18,7 +18,6 @@ class GetRoom(APIView):
     lookup_url_kwarg = "code"
 
     def get(self, request, format=None):
-        print("Landed on Room Get Details")
         code = request.GET.get(self.lookup_url_kwarg)
         if code != None:
             room = Room.objects.filter(code=code)
@@ -38,8 +37,6 @@ class GetRoom(APIView):
 
 
 # Creating a new room using the guest_can_pause and votes_to_skip, the other attributes are generated automatically
-
-
 class CreateRoomView(APIView):
     serializer_class = CreateRoomSerializer
 
@@ -77,8 +74,6 @@ class CreateRoomView(APIView):
 
 
 # Joining by basically just adding the room code to the session data
-
-
 class JoinRoom(APIView):
     def post(self, request, format=None):
         if not self.request.session.exists(self.request.session.session_key):
@@ -100,8 +95,6 @@ class JoinRoom(APIView):
 
 
 # Checking if user is in a room and if so returning the room code
-
-
 class UserInRoom(APIView):
     def get(self, request, format=None):
         data = {"code": self.request.session.get("room_code")}
@@ -110,8 +103,6 @@ class UserInRoom(APIView):
 
 
 # Endpoint for leaving a Room by simply removing the room code from session object or the whole room if the user is host (checking host)
-
-
 class LeaveRoom(APIView):
     def post(self, request, format=None):
         if "room_code" in self.request.session:

@@ -13,8 +13,10 @@ import Room from "./Room";
 import MusicPlayer from "./MusicPlayer";
 
 function App() {
+  // Room code as a state variable
   const [roomCode, setRoomCode] = useState(null);
 
+  // Checking if user already has Room code, Runing the code only once at the beginning
   useEffect(() => {
     fetch("/api/userinroom")
       .then((response) => response.json())
@@ -23,10 +25,12 @@ function App() {
       });
   }, []);
 
+  // Function to clear Room code if user wants to leave room from Room page
   const clearRoomCode = () => {
     setRoomCode(null);
   };
 
+  // Home Page Rendering
   const renderHomePage = () => {
     return (
       <Grid container spacing={3}>
@@ -49,6 +53,7 @@ function App() {
     );
   };
 
+  // Setting the Routes
   return (
     <Router>
       <Routes>

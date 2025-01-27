@@ -5,9 +5,9 @@ from .views import index
 app_name = "frontend"
 
 urlpatterns = [
-    path("", index, name=""),
-    path("join", index, name="index"),
-    path("create", index, name="index"),
-    path("room/<str:roomCode>", index, name="index"),
+    path("", index, name="home"),
+    path("join", index),
+    path("create", index),
+    path("room/<str:roomCode>", index),
     path("<path:path>", index),  # Catch-all for any other routes
 ]

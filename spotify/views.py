@@ -8,10 +8,12 @@ from rest_framework.response import Response
 
 from api.models import Room
 from .util import *
+from .serializers import SpotifyTokenSerializer
 
-# OAuth:
 
-# Generates a Spotify authentication URL that the client can use to redirect users to Spotify for login and authorization
+class SpotifyTokensView(generics.ListAPIView):
+    queryset = SpotifyToken.objects.all()
+    serializer_class = SpotifyTokenSerializer
 
 
 class IsAuthenticated(APIView):
@@ -20,8 +22,9 @@ class IsAuthenticated(APIView):
         return Response({"status": is_authenticated}, status=status.HTTP_200_OK)
 
 
-# First step of OAuth
+# first Step of OAuth: URL of user
 class AuthURL(APIView):
+
     def get(self, request, format=None):
 
         scopes = "user-read-playback-state user-modify-playback-state user-read-currently-playing"
@@ -45,9 +48,7 @@ class AuthURL(APIView):
         return Response({"url": url}, status=status.HTTP_200_OK)
 
 
-# Handles the Spotify redirection after the user logs in and authorizes the app. It exchanges the authorization code for an access token and refresh token.
-
-
+# Second step of OAuth: Exchanging the authorization code for an access token and refresh token.
 def spotify_callback(request, format=None):
     code = request.GET.get("code")
     error = request.GET.get("error")
@@ -65,6 +66,9 @@ def spotify_callback(request, format=None):
     ).json()
 
     # Token data
+    if code is None:
+        print("Error: Authorization code is missing!")
+
     access_token = response.get("access_token")
     token_type = response.get("token_type")
     refresh_token = response.get("refresh_token")
@@ -85,8 +89,8 @@ def spotify_callback(request, format=None):
         expires_in,
         refresh_token,
     )
-
-    return redirect("frontend:homePage")
+    room_code = request.session.get("room_code")
+    return redirect(f"/room/{room_code}")
 
 
 class CurrentSong(APIView):
@@ -138,3 +142,17 @@ class CurrentSong(APIView):
         }
 
         return Response(song, status=status.HTTP_200_OK)
+
+
+class GetUserTokens(APIView):
+    def get(self, request, format=None):
+        serializer_class = SpotifyTokenSerializer
+        token = get_user_tokens(request.session.session_key)
+        if token.exists():
+            data = serializer_class(token)
+            return Response(data, status=status.HTTP_200_OK)
+        else:
+            Response(
+                {"Token not found": " No tokens for this user "},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

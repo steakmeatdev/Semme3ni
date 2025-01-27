@@ -1,6 +1,7 @@
 from .models import SpotifyToken
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.timezone import now
 from .credentials import CLIENT_ID, CLIENT_SECRET
 from requests import post, put, get, patch
 
@@ -21,8 +22,13 @@ def get_user_tokens(session_id):
 def update_or_create_user_tokens(
     session_id, access_token, token_type, expires_in, refresh_token
 ):
+    # Ensure expires_in is valid
+    if expires_in is None:
+        raise ValueError("expires_in cannot be Noone")
+
+    expires_in = now() + timedelta(seconds=expires_in)
+
     tokens = get_user_tokens(session_id)
-    expires_in = timezone.now() + timedelta(seconds=expires_in)
 
     if tokens:
         tokens.access_token = access_token
