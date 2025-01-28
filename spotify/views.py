@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from api.models import Room
 from .util import *
 from .serializers import SpotifyTokenSerializer
+from django.forms import model_to_dict
 
 
 class SpotifyTokensView(generics.ListAPIView):
@@ -65,15 +66,13 @@ def spotify_callback(request, format=None):
         },
     ).json()
 
-    # Token data
-    if code is None:
-        print("Error: Authorization code is missing!")
-
     access_token = response.get("access_token")
     token_type = response.get("token_type")
     refresh_token = response.get("refresh_token")
     expires_in = response.get("expires_in")
     error = response.get("error")
+
+    authenticateduser = "1"
 
     # As always, if user doesn't have a session, they should create one
 
@@ -90,7 +89,7 @@ def spotify_callback(request, format=None):
         refresh_token,
     )
     room_code = request.session.get("room_code")
-    return redirect(f"/room/{room_code}")
+    return redirect(f"/room/{room_code}/{authenticateduser}")
 
 
 class CurrentSong(APIView):
@@ -144,15 +143,30 @@ class CurrentSong(APIView):
         return Response(song, status=status.HTTP_200_OK)
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+
 class GetUserTokens(APIView):
+    serializer_class = SpotifyTokenSerializer
+
     def get(self, request, format=None):
-        serializer_class = SpotifyTokenSerializer
-        token = get_user_tokens(request.session.session_key)
-        if token.exists():
-            data = serializer_class(token)
-            return Response(data, status=status.HTTP_200_OK)
+        tmp = get_user_tokens(request.session.session_key)
+        token = model_to_dict(tmp)
+        if token:
+            serializer = self.serializer_class(data=token)
+            if serializer.is_valid():
+                print(serializer.data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                print(serializer.errors)
+                return Response(
+                    {"error": "Invalid token data", "details": serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         else:
-            Response(
-                {"Token not found": " No tokens for this user "},
-                status=status.HTTP_400_BAD_REQUEST,
+            return Response(
+                {"error": "Token not found", "message": "No tokens for this user"},
+                status=status.HTTP_404_NOT_FOUND,  # 404 is more appropriate for "not found"
             )

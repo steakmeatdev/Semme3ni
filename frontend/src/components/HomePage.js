@@ -60,13 +60,17 @@ function App() {
         <Route
           path="/"
           element={
-            roomCode ? <Navigate to={`/room/${roomCode}`} /> : renderHomePage()
+            roomCode ? (
+              <Navigate to={`/room/${roomCode}/0`} />
+            ) : (
+              renderHomePage()
+            )
           }
         />
         <Route path="/join" element={<RoomJoinPage />} />
         <Route path="/create" element={<CreateRoomPage />} />
         <Route
-          path="/room/:roomCode"
+          path="/room/:roomCode/:authenticateduser"
           element={<Room clearRoomCode={clearRoomCode} />}
         />
       </Routes>

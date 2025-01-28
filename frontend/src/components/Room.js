@@ -9,6 +9,7 @@ function Room({ clearRoomCode }) {
 
   // Extracting roomCode from URL
   const { roomCode } = useParams();
+  const { authenticateduser } = useParams();
 
   //useEffect(() => {
   // This is equivalent to componentDidMount
@@ -22,14 +23,18 @@ function Room({ clearRoomCode }) {
   const [votesToSkip, setVotesToSkip] = useState(2);
   const [guestCanPause, setGuestCanPause] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
+  const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(
+    stringToBoolean(authenticateduser)
+  );
   const [isHost, setIsHost] = useState(false);
   const [accesstoken, setAccesstoken] = useState("");
   const [song, setSong] = useState("");
 
   // ------------------------------ FUNCTIONS -------------------------
   //////////////////////////////////////////////////////////////////////
-
+  function stringToBoolean(str) {
+    return str === "1";
+  }
   //const getCurrentSong = async () => {
   //  const response = await fetch("/spotify///current-song");
 
@@ -43,45 +48,114 @@ function Room({ clearRoomCode }) {
 
   // getting the Room details using provided code in the URL
   const getRoomDetails = async () => {
+    let response;
     try {
-      const response = await fetch(`/api/get?code=${roomCode}`);
-      if (!response.ok) {
-        clearRoomCode();
-        navigate("/");
-      }
+      response = await fetch(
+        `/api/get?code=${roomCode}&?isauth=${authenticateduser}`
+      );
+    } catch (error) {
+      console.error("Error fetching room details:", error);
+      clearRoomCode();
+      navigate("/");
+      return;
+    }
+    if (!response.ok) {
+      clearRoomCode();
+      navigate("/");
+    }
+
+    try {
       const data = await response.json();
       setVotesToSkip(data.votes_to_skip);
       setGuestCanPause(data.guest_can_pause);
       setIsHost(data.is_host);
-      // If the user is the host, authenticate with Spotify
       if (data.is_host && !spotifyAuthenticated) {
+        console.log("executing authenticateSpotify");
         authenticateSpotify();
+      } else {
+        try {
+          const info_response = await fetch("/spotify/tokenInfo");
+          try {
+            const userTokens = await info_response.json();
+            setAccesstoken(userTokens.access_token);
+          } catch (error) {
+            console.log("Error converting token info to JSON (1)");
+          }
+        } catch (error) {
+          console.log(
+            "Error getting token info after verifying authentication"
+          );
+        }
       }
     } catch (error) {
-      console.error("Error fetching room details:", error);
+      console.error("Error converting response data to JSON format", error);
     }
   };
 
   // Verify if user is authenticated with spotify
   const authenticateSpotify = async () => {
+    // function verifyAuth = async () => {
+    //   try {
+    //     const response = await fetch("/spotify/isauthenticated");
+    //     try {
+    //       const data = await response.json();}
+    //     } catch(error){console.log("")}
+
     try {
       const response = await fetch("/spotify/isauthenticated");
-      const data = await response.json();
-      setSpotifyAuthenticated(data.status);
-
-      if (!data.status) {
-        const authResponse = await fetch("/spotify/get-auth-url");
-        const authData = await authResponse.json();
-        window.location.replace(authData.url);
-        setSpotifyAuthenticated(data.status);
-        const info_response = await fetch("/spotify/tokenInfo");
-        const userTokens = await info_response.json();
-
-        setAccesstoken(userTokens.access_token);
-        console.log(accesstoken);
+      try {
+        const data = await response.json();
+        if (data.status) {
+          try {
+            setSpotifyAuthenticated(true);
+            const info_response = await fetch("/spotify/tokenInfo");
+            try {
+              const userTokens = await info_response.json();
+              setAccesstoken(userTokens.access_token);
+            } catch (error) {
+              console.log("Error converting token info to JSON (1)");
+            }
+          } catch (error) {
+            console.log(
+              "Error getting token info after isauthenticated has succeeded"
+            );
+          }
+        } else {
+          try {
+            const authResponse = await fetch("/spotify/get-auth-url");
+            try {
+              const authData = await authResponse.json();
+              window.location.replace(authData.url);
+              setSpotifyAuthenticated(true);
+              try {
+                const info_response = await fetch("/spotify/tokenInfo");
+                try {
+                  const userTokens = await info_response.json();
+                  setAccesstoken(userTokens.access_token);
+                } catch (error) {
+                  console.log("Error converting token info to JSON (2)");
+                }
+              } catch (error) {
+                console.log(
+                  "Error getting token info after get-auth-url has succeeded"
+                );
+              }
+            } catch (error) {
+              console.log(
+                "Error converting get-auth-url response data to JSON format"
+              );
+            }
+          } catch (error) {
+            console.log("Error fetching get-auth-url");
+          }
+        }
+      } catch (error) {
+        console.log(
+          "Error converting isauthenticated response data to JSON format"
+        );
       }
     } catch (error) {
-      console.error("Error authenticating user:", error);
+      console.error("Error fetching isauthenticated");
     }
   };
 
@@ -105,8 +179,9 @@ function Room({ clearRoomCode }) {
   };
 
   //////////////////////////////////////////////////////////////////////
-
-  getRoomDetails();
+  useEffect(() => {
+    getRoomDetails();
+  }, []);
 
   // Updating showSettings state
   const updateShowSettings = (value) => {
@@ -170,6 +245,12 @@ function Room({ clearRoomCode }) {
         <Grid item xs={12} align="center">
           <Typography variant="h6" component="h6">
             Host: {isHost.toString()}
+          </Typography>
+          <Typography variant="h6" component="h6">
+            Authenticated: {spotifyAuthenticated.toString()}
+          </Typography>
+          <Typography variant="h6" component="h6">
+            AccessToken: {accesstoken}
           </Typography>
         </Grid>
         {isHost ? renderSettingsButton() : null}

@@ -5,12 +5,11 @@ from .models import SpotifyToken
 class SpotifyTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpotifyToken
-        fields = [
+        fields = (
             "user",
             "created_at",
             "refresh_token",
             "access_token",
             "expires_in",
             "token_type",
-        ]
-        read_only_fields = ["created_at"]  # Optionally, make 'created_at' read-only
+        )

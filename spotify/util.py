@@ -11,7 +11,6 @@ BASE_URL = "https://api.spotify.com/v1/me/"
 # Gettin the user tokens using session_key
 def get_user_tokens(session_id):
     user_tokens = SpotifyToken.objects.filter(user=session_id)
-
     if user_tokens.exists():
         return user_tokens[0]
     else:
