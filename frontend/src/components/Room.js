@@ -87,20 +87,28 @@ function Room({ clearRoomCode }) {
           );
         }
       }
+      try {
+        const response = await fetch("/spotify/current-song");
+        console.log();
+        if (!response.ok) {
+          throw new Error("Couldn't fetch data");
+        }
+        try {
+          const jsonData = await response.json();
+          console.log(jsonData);
+          setSong(jsonData.title);
+        } catch (error) {
+          console.log("error converting music data to json");
+        }
+      } catch (error) {
+        console.error("Fetch error:", error.message);
+      }
     } catch (error) {
       console.error("Error converting response data to JSON format", error);
     }
   };
 
-  // Verify if user is authenticated with spotify
   const authenticateSpotify = async () => {
-    // function verifyAuth = async () => {
-    //   try {
-    //     const response = await fetch("/spotify/isauthenticated");
-    //     try {
-    //       const data = await response.json();}
-    //     } catch(error){console.log("")}
-
     try {
       const response = await fetch("/spotify/isauthenticated");
       try {
@@ -248,6 +256,9 @@ function Room({ clearRoomCode }) {
           </Typography>
           <Typography variant="h6" component="h6">
             Authenticated: {spotifyAuthenticated.toString()}
+          </Typography>
+          <Typography variant="h6" component="h6">
+            Song: {song}
           </Typography>
           <Typography variant="h6" component="h6">
             AccessToken: {accesstoken}

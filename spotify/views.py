@@ -72,6 +72,7 @@ def spotify_callback(request, format=None):
     expires_in = response.get("expires_in")
     error = response.get("error")
 
+    # Since user successfully authenticated
     authenticateduser = "1"
 
     # As always, if user doesn't have a session, they should create one
@@ -139,13 +140,9 @@ class CurrentSong(APIView):
             "votes": 0,
             "id": song_id,
         }
+        print(song)
 
         return Response(song, status=status.HTTP_200_OK)
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 
 
 class GetUserTokens(APIView):
@@ -157,10 +154,10 @@ class GetUserTokens(APIView):
         if token:
             serializer = self.serializer_class(data=token)
             if serializer.is_valid():
-                print(serializer.data)
+
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                print(serializer.errors)
+
                 return Response(
                     {"error": "Invalid token data", "details": serializer.errors},
                     status=status.HTTP_400_BAD_REQUEST,

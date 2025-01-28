@@ -5,8 +5,6 @@ from django.utils.timezone import now
 from .credentials import CLIENT_ID, CLIENT_SECRET
 from requests import post, put, get, patch
 
-BASE_URL = "https://api.spotify.com/v1/me/"
-
 
 # Gettin the user tokens using session_key
 def get_user_tokens(session_id):
@@ -82,8 +80,12 @@ def refresh_spotify_token(session_id):
     )
 
 
+BASE_URL = "https://api.spotify.com/v1/me/"
+
+
 def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False):
     tokens = get_user_tokens(session_id)
+    print("This is the access token for the song: " + tokens.access_token)
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + tokens.access_token,
@@ -95,6 +97,7 @@ def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False):
         put(BASE_URL + endpoint, headers=headers)
 
     response = get(BASE_URL + endpoint, {}, headers=headers)
+    print("response status code : " + str(response.status_code))
     try:
         return response.json()
     except:
