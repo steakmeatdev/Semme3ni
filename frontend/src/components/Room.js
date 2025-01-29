@@ -9,7 +9,6 @@ function Room({ clearRoomCode }) {
 
   // Extracting roomCode from URL
   const { roomCode } = useParams();
-  const { authenticateduser } = useParams();
 
   //useEffect(() => {
   // This is equivalent to componentDidMount
@@ -23,90 +22,45 @@ function Room({ clearRoomCode }) {
   const [votesToSkip, setVotesToSkip] = useState(2);
   const [guestCanPause, setGuestCanPause] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(
-    stringToBoolean(authenticateduser)
-  );
+  const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
   const [isHost, setIsHost] = useState(false);
   const [accesstoken, setAccesstoken] = useState("");
   const [song, setSong] = useState("");
-
-  // ------------------------------ FUNCTIONS -------------------------
-  //////////////////////////////////////////////////////////////////////
-  function stringToBoolean(str) {
-    return str === "1";
-  }
-  //const getCurrentSong = async () => {
-  //  const response = await fetch("/spotify///current-song");
-
-  //  if (!response.ok) {
-  //return {};
-  //  } else {
-  //    const data = await response.json();
-  // }
-  // setSong(data);
-  //};
 
   // getting the Room details using provided code in the URL
   const getRoomDetails = async () => {
     let response;
     try {
-      response = await fetch(
-        `/api/get?code=${roomCode}&?isauth=${authenticateduser}`
-      );
-    } catch (error) {
-      console.error("Error fetching room details:", error);
-      clearRoomCode();
-      navigate("/");
-      return;
-    }
-    if (!response.ok) {
-      clearRoomCode();
-      navigate("/");
-    }
-
-    try {
-      const data = await response.json();
-      setVotesToSkip(data.votes_to_skip);
-      setGuestCanPause(data.guest_can_pause);
-      setIsHost(data.is_host);
-      if (data.is_host && !spotifyAuthenticated) {
-        console.log("executing authenticateSpotify");
-        authenticateSpotify();
+      response = await fetch(`/api/get?code=${roomCode}`);
+      if (!response.ok) {
+        clearRoomCode();
+        navigate("/");
       } else {
         try {
-          const info_response = await fetch("/spotify/tokenInfo");
-          try {
-            const userTokens = await info_response.json();
-            setAccesstoken(userTokens.access_token);
-          } catch (error) {
-            console.log("Error converting token info to JSON (1)");
+          const data = await response.json();
+          setVotesToSkip(data.votes_to_skip);
+          setGuestCanPause(data.guest_can_pause);
+          setIsHost(data.is_host);
+          if (data.is_host) {
+            console.log("Verifying authentication");
+            authenticateSpotify();
           }
         } catch (error) {
           console.log(
-            "Error getting token info after verifying authentication"
+            "Error converting /get?code=${roomCode} response data to JSON format ",
+            error.message
           );
         }
       }
-      try {
-        const response = await fetch("/spotify/current-song");
-        console.log();
-        if (!response.ok) {
-          throw new Error("Couldn't fetch data");
-        }
-        try {
-          const jsonData = await response.json();
-          console.log(jsonData);
-          setSong(jsonData.title);
-        } catch (error) {
-          console.log("error converting music data to json");
-        }
-      } catch (error) {
-        console.error("Fetch error:", error.message);
-      }
     } catch (error) {
-      console.error("Error converting response data to JSON format", error);
+      console.error("Error fetching /get?code=${roomCode} :", error.message);
     }
   };
+
+  // Verify authentication:
+  // If host is not authenticated, authenticate
+  // If user got an expired token, it refreshes
+  // If everything is alright, set the spotifyAuthenticated state variable to true
 
   const authenticateSpotify = async () => {
     try {
@@ -114,52 +68,35 @@ function Room({ clearRoomCode }) {
       try {
         const data = await response.json();
         if (data.status) {
-          try {
-            setSpotifyAuthenticated(true);
-            const info_response = await fetch("/spotify/tokenInfo");
-            try {
-              const userTokens = await info_response.json();
-              setAccesstoken(userTokens.access_token);
-            } catch (error) {
-              console.log("Error converting token info to JSON (1)");
-            }
-          } catch (error) {
-            console.log(
-              "Error getting token info after isauthenticated has succeeded"
-            );
-          }
+          setSpotifyAuthenticated(true);
         } else {
           try {
             const authResponse = await fetch("/spotify/get-auth-url");
             try {
               const authData = await authResponse.json();
-              window.location.replace(authData.url);
-              setSpotifyAuthenticated(true);
               try {
-                const info_response = await fetch("/spotify/tokenInfo");
-                try {
-                  const userTokens = await info_response.json();
-                  setAccesstoken(userTokens.access_token);
-                } catch (error) {
-                  console.log("Error converting token info to JSON (2)");
-                }
+                window.location.replace(authData.url);
               } catch (error) {
                 console.log(
-                  "Error getting token info after get-auth-url has succeeded"
+                  "Couldn't open window for user to authenticate",
+                  error.message
                 );
               }
+              setSpotifyAuthenticated(true);
             } catch (error) {
               console.log(
-                "Error converting get-auth-url response data to JSON format"
+                "Error converting /get-auth-url response data to JSON format",
+                error.message
               );
             }
           } catch (error) {
-            console.log("Error fetching get-auth-url");
+            console.log("Error fetching /get-auth-url", error.message);
           }
         }
       } catch (error) {
         console.log(
-          "Error converting isauthenticated response data to JSON format"
+          "Error converting /isauthenticated response data to JSON format",
+          error.message
         );
       }
     } catch (error) {
@@ -185,8 +122,6 @@ function Room({ clearRoomCode }) {
       })
       .catch((error) => console.error("Error leaving room:", error));
   };
-
-  //////////////////////////////////////////////////////////////////////
   useEffect(() => {
     getRoomDetails();
   }, []);

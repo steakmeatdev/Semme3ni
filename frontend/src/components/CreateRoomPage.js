@@ -50,7 +50,7 @@ const CreateRoomPage = ({
       .then((response) => response.json())
       .then((data) => {
         if (data && data.code) {
-          navigate(`/room/${data.code}/0`);
+          navigate(`/room/${data.code}`);
         } else {
           console.error("Error: No room code returned");
         }

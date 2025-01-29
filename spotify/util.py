@@ -9,6 +9,7 @@ from requests import post, put, get, patch
 # Gettin the user tokens using session_key
 def get_user_tokens(session_id):
     user_tokens = SpotifyToken.objects.filter(user=session_id)
+
     if user_tokens.exists():
         return user_tokens[0]
     else:
@@ -19,19 +20,15 @@ def get_user_tokens(session_id):
 def update_or_create_user_tokens(
     session_id, access_token, token_type, expires_in, refresh_token
 ):
-    # Ensure expires_in is valid
-    if expires_in is None:
-        raise ValueError("expires_in cannot be Noone")
 
     expires_in = now() + timedelta(seconds=expires_in)
-
     tokens = get_user_tokens(session_id)
-
     if tokens:
         tokens.access_token = access_token
         tokens.refresh_token = refresh_token
         tokens.expires_in = expires_in
         tokens.token_type = token_type
+
         tokens.save(
             update_fields=["access_token", "refresh_token", "expires_in", "token_type"]
         )
@@ -53,13 +50,15 @@ def is_spotify_authenticated(session_id):
         if exipry <= timezone.now():
             refresh_spotify_token(session_id)
             return True
-
+        else:
+            return True
     return False
 
 
 def refresh_spotify_token(session_id):
     refresh_token = get_user_tokens(session_id).refresh_token
 
+    # Make the POST request
     response = post(
         "https://accounts.spotify.com/api/token",
         data={
@@ -68,16 +67,34 @@ def refresh_spotify_token(session_id):
             "client_id": CLIENT_ID,
             "client_secret": CLIENT_SECRET,
         },
-    ).json()
-
-    access_token = response.get("access_token")
-    token_type = response.get("token_type")
-    expires_in = response.get("expires_in")
-    refresh_token = response.get("refresh_token")
-
-    update_or_create_user_tokens(
-        session_id, access_token, token_type, expires_in, refresh_token
     )
+
+    # Print the status code
+    print(response.status_code)
+
+    # Check if the response is successful
+    if response.status_code == 200:
+        # Parse the JSON content
+        response_data = response.json()
+        print(response_data)
+
+        access_token = response_data.get("access_token")
+        token_type = response_data.get("token_type")
+        expires_in = response_data.get("expires_in")
+        refresh_token = response_data.get("refresh_token")
+
+        print(access_token)
+        print(token_type)
+        print(expires_in)
+        print(refresh_token)
+
+        print("Before updating")
+        update_or_create_user_tokens(
+            session_id, access_token, token_type, expires_in, refresh_token
+        )
+        print("After updating")
+    else:
+        print(f"Failed to refresh token. Status code: {response.status_code}")
 
 
 BASE_URL = "https://api.spotify.com/v1/me/"

@@ -19,7 +19,8 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 
-const MusicPlayer = ({ song = {} }) => {
+const MusicPlayer = () => {
+  const { song } = useParams();
   const songProgress = (song.time / song.duration) * 100;
 
   const imageUrl = song.image_url || ""; // Fallback if the property doesn't exist

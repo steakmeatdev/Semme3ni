@@ -45,7 +45,6 @@ class AuthURL(APIView):
             .prepare()
             .url
         )
-
         return Response({"url": url}, status=status.HTTP_200_OK)
 
 
@@ -72,9 +71,6 @@ def spotify_callback(request, format=None):
     expires_in = response.get("expires_in")
     error = response.get("error")
 
-    # Since user successfully authenticated
-    authenticateduser = "1"
-
     # As always, if user doesn't have a session, they should create one
 
     if not request.session.session_key:
@@ -90,7 +86,7 @@ def spotify_callback(request, format=None):
         refresh_token,
     )
     room_code = request.session.get("room_code")
-    return redirect(f"/room/{room_code}/{authenticateduser}")
+    return redirect(f"/room/{room_code}")
 
 
 class CurrentSong(APIView):
@@ -154,7 +150,7 @@ class GetUserTokens(APIView):
         if token:
             serializer = self.serializer_class(data=token)
             if serializer.is_valid():
-
+                print("this is current user token" + str(serializer.data))
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
 
