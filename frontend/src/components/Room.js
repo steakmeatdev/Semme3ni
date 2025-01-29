@@ -10,13 +10,23 @@ function Room({ clearRoomCode }) {
   // Extracting roomCode from URL
   const { roomCode } = useParams();
 
-  //useEffect(() => {
-  // This is equivalent to componentDidMount
-  //const interval = setInterval(getCurrentSong, 1000);
-
-  // This is equivalent to componentWillUnmount
-  //return () => clearInterval(interval);
-  // }, []);
+  const getCurrentSong = async () => {
+    try {
+      const response = await fetch("/spotify/current-song");
+      if (!response.ok) {
+        throw new Error("Couldn't fetch data");
+      }
+      try {
+        const jsonData = await response.json();
+        // setting song state varibale to pass as a prop to the MusicPlaer component
+        setSong(jsonData);
+      } catch (error) {
+        console.log("error converting music data to json");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error.message);
+    }
+  };
 
   // State variables
   const [votesToSkip, setVotesToSkip] = useState(2);
@@ -44,22 +54,6 @@ function Room({ clearRoomCode }) {
           if (data.is_host) {
             console.log("Verifying authentication");
             authenticateSpotify();
-          }
-
-          try {
-            const response = await fetch("/spotify/current-song");
-            if (!response.ok) {
-              throw new Error("Couldn't fetch data");
-            }
-            try {
-              const jsonData = await response.json();
-              // setting song state varibale to pass as a prop to the MusicPlaer component
-              setSong(jsonData);
-            } catch (error) {
-              console.log("error converting music data to json");
-            }
-          } catch (error) {
-            console.error("Fetch error:", error.message);
           }
         } catch (error) {
           console.log(
@@ -138,8 +132,17 @@ function Room({ clearRoomCode }) {
       })
       .catch((error) => console.error("Error leaving room:", error));
   };
+
+  // Calling getRoomDetails()
   useEffect(() => {
     getRoomDetails();
+  }, []);
+
+  // Calling getCurrentSong() each 1000 ms (= to 1 second)
+  useEffect(() => {
+    const interval = setInterval(getCurrentSong, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Updating showSettings state
@@ -189,16 +192,9 @@ function Room({ clearRoomCode }) {
       </Grid>
     );
   };
-  console.log(
-    "This is song before passing it as a prop to the music player component",
-    song
-  );
+
   // Function to render MusicPlayer page
   const renderMusicPlayer = () => {
-    console.log(
-      "This is song before passing it as a prop to the music player component",
-      song
-    );
     return (
       <Grid>
         <Grid item xs={12} align="center">

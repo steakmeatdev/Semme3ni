@@ -43,13 +43,13 @@ def update_or_create_user_tokens(
         tokens.save()
 
 
+# Handling numerous refreshes
 def is_spotify_authenticated(session_id):
     tokens = get_user_tokens(session_id)
     if tokens:
         exipry = tokens.expires_in
         if exipry <= timezone.now():
-            refresh_spotify_token(session_id)
-            return True
+            return refresh_spotify_token(session_id)
         else:
             return True
     return False
@@ -69,28 +69,25 @@ def refresh_spotify_token(session_id):
         },
     )
 
-    print(response.status_code)
-
     if response.status_code == 200:
 
         response_data = response.json()
-        print(response_data)
 
         access_token = response_data.get("access_token")
         token_type = response_data.get("token_type")
         expires_in = response_data.get("expires_in")
         refresh_token = response_data.get("refresh_token")
 
-        print(access_token)
-        print(token_type)
-        print(expires_in)
-        print(refresh_token)
-
-        update_or_create_user_tokens(
-            session_id, access_token, token_type, expires_in, refresh_token
-        )
+        if refresh_token == None:
+            return False
+        else:
+            update_or_create_user_tokens(
+                session_id, access_token, token_type, expires_in, refresh_token
+            )
+            return True
     else:
         print(f"Failed to refresh token. Status code: {response.status_code}")
+        return False
 
 
 BASE_URL = "https://api.spotify.com/v1/me/"
@@ -115,3 +112,15 @@ def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False):
         return response.json()
     except:
         return {"Error": "Issue with request"}
+
+
+def play_song(session_id):
+    return execute_spotify_api_request(session_id, "player/play", put_=True)
+
+
+def pause_song(session_id):
+    return execute_spotify_api_request(session_id, "player/pause", put_=True)
+
+
+def skip_song(session_id):
+    return execute_spotify_api_request(session_id, "player/next", post_=True)

@@ -4,6 +4,7 @@ import random
 
 # Function to generate random codes for the rooms
 
+
 def generate_unique_code():
     length = 6
 
@@ -14,6 +15,7 @@ def generate_unique_code():
         if Room.objects.filter(code=code).count() == 0:
             break
     return code
+
 
 # Room model
 class Room(models.Model):
@@ -27,9 +29,13 @@ class Room(models.Model):
     votes_to_skip = models.IntegerField(default=1)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
+    current_song = models.CharField(max_length=50, null=True)
+
     # Function to save room object in the database
     def save(self, *args, **kwargs):
         if not self.code:
-            self.code = generate_unique_code()  # Generate the unique code if not provided
+            self.code = (
+                generate_unique_code()
+            )  # Generate the unique code if not provided
         super().save(*args, **kwargs)
