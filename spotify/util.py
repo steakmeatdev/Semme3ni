@@ -69,12 +69,10 @@ def refresh_spotify_token(session_id):
         },
     )
 
-    # Print the status code
     print(response.status_code)
 
-    # Check if the response is successful
     if response.status_code == 200:
-        # Parse the JSON content
+
         response_data = response.json()
         print(response_data)
 
@@ -88,11 +86,9 @@ def refresh_spotify_token(session_id):
         print(expires_in)
         print(refresh_token)
 
-        print("Before updating")
         update_or_create_user_tokens(
             session_id, access_token, token_type, expires_in, refresh_token
         )
-        print("After updating")
     else:
         print(f"Failed to refresh token. Status code: {response.status_code}")
 
@@ -102,7 +98,7 @@ BASE_URL = "https://api.spotify.com/v1/me/"
 
 def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False):
     tokens = get_user_tokens(session_id)
-    print("This is the access token for the song: " + tokens.access_token)
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + tokens.access_token,
@@ -114,7 +110,7 @@ def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False):
         put(BASE_URL + endpoint, headers=headers)
 
     response = get(BASE_URL + endpoint, {}, headers=headers)
-    print("response status code : " + str(response.status_code))
+
     try:
         return response.json()
     except:

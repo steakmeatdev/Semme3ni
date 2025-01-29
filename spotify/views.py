@@ -136,7 +136,6 @@ class CurrentSong(APIView):
             "votes": 0,
             "id": song_id,
         }
-        print(song)
 
         return Response(song, status=status.HTTP_200_OK)
 

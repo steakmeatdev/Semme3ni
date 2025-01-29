@@ -25,7 +25,7 @@ function Room({ clearRoomCode }) {
   const [spotifyAuthenticated, setSpotifyAuthenticated] = useState(false);
   const [isHost, setIsHost] = useState(false);
   const [accesstoken, setAccesstoken] = useState("");
-  const [song, setSong] = useState("");
+  const [song, setSong] = useState({});
 
   // getting the Room details using provided code in the URL
   const getRoomDetails = async () => {
@@ -44,6 +44,22 @@ function Room({ clearRoomCode }) {
           if (data.is_host) {
             console.log("Verifying authentication");
             authenticateSpotify();
+          }
+
+          try {
+            const response = await fetch("/spotify/current-song");
+            if (!response.ok) {
+              throw new Error("Couldn't fetch data");
+            }
+            try {
+              const jsonData = await response.json();
+              // setting song state varibale to pass as a prop to the MusicPlaer component
+              setSong(jsonData);
+            } catch (error) {
+              console.log("error converting music data to json");
+            }
+          } catch (error) {
+            console.error("Fetch error:", error.message);
           }
         } catch (error) {
           console.log(
@@ -173,18 +189,36 @@ function Room({ clearRoomCode }) {
       </Grid>
     );
   };
+  console.log(
+    "This is song before passing it as a prop to the music player component",
+    song
+  );
+  // Function to render MusicPlayer page
+  const renderMusicPlayer = () => {
+    console.log(
+      "This is song before passing it as a prop to the music player component",
+      song
+    );
+    return (
+      <Grid>
+        <Grid item xs={12} align="center">
+          <MusicPlayer song_={song} />
+        </Grid>
+      </Grid>
+    );
+  };
 
   if (showSettings) {
     return renderSettings();
   } else {
     return (
       <Grid container spacing={1}>
+        {renderMusicPlayer()}
         <Grid item xs={12} align="center">
           <Typography variant="h4" component="h4">
             Code: {roomCode}
           </Typography>
         </Grid>
-
         <Grid item xs={12} align="center">
           <Typography variant="h6" component="h6">
             Host: {isHost.toString()}
@@ -193,10 +227,7 @@ function Room({ clearRoomCode }) {
             Authenticated: {spotifyAuthenticated.toString()}
           </Typography>
           <Typography variant="h6" component="h6">
-            Song: {song}
-          </Typography>
-          <Typography variant="h6" component="h6">
-            AccessToken: {accesstoken}
+            Song: {song.title}
           </Typography>
         </Grid>
         {isHost ? renderSettingsButton() : null}

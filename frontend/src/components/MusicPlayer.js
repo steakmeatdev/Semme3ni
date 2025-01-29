@@ -19,16 +19,21 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 
-const MusicPlayer = () => {
-  const { song } = useParams();
-  const songProgress = (song.time / song.duration) * 100;
+const MusicPlayer = ({ song_ }) => {
+  console.log("This is song_ in MusicPlayer:", song_);
+  if (!song_ || Object.keys(song_).length === 0) {
+    return <Typography>No song selected</Typography>;
+  } else {
+    const songProgress =
+      song_?.time && song_?.duration ? (song_.time / song_.duration) * 100 : 0;
 
-  const imageUrl = song.image_url || ""; // Fallback if the property doesn't exist
-  const title = song.title || "Unknown Title";
-  const artist = song.artist || "Unknown Artist";
-  const isPlaying = song.is_playing || false;
-  return (
-    <Card>
+    const imageUrl = song_?.image_url || "";
+    const title = song_?.title || "Unknown Title";
+    const artist = song_?.artist || "Unknown Artist";
+    const isPlaying = song_?.is_playing || false;
+    console.log(imageUrl, title, artist, isPlaying, songProgress);
+
+    return (
       <Grid container alignItems="center">
         <Grid item align="center" xs={4}>
           <img src={imageUrl} height="100%" width="100%" alt={title} />
@@ -40,18 +45,11 @@ const MusicPlayer = () => {
           <Typography color="textSecondary" variant="subtitle1">
             {artist}
           </Typography>
-          <div>
-            <IconButton>
-              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            </IconButton>
-            <IconButton>
-              <SkipNextIcon />
-            </IconButton>
-          </div>
         </Grid>
+
+        <LinearProgress variant="determinate" value={songProgress} />
       </Grid>
-      <LinearProgress variant="determinate" value={songProgress} />
-    </Card>
-  );
+    );
+  }
 };
 export default MusicPlayer;
