@@ -3,7 +3,8 @@ from django.utils import timezone
 from datetime import timedelta
 from django.utils.timezone import now
 from .credentials import CLIENT_ID, CLIENT_SECRET
-from requests import post, put, get, patch
+from requests import Request, post, put, get
+import requests
 
 
 # Gettin the user tokens using session_key
@@ -102,16 +103,21 @@ def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False):
     }
 
     if post_:
-        post(BASE_URL + endpoint, headers=headers)
-    if put_:
-        put(BASE_URL + endpoint, headers=headers)
+        response = post(BASE_URL + endpoint, headers=headers)
+    elif put_:
+        response = put(BASE_URL + endpoint, headers=headers)
+    else:
+        response = get(BASE_URL + endpoint, headers=headers)
 
-    response = get(BASE_URL + endpoint, {}, headers=headers)
+    # Check if the response is empty
+    if not response.text.strip():  # Handles both empty string and None
+        return {"status": "success", "message": "No content returned"}
 
+    # Try to parse JSON only if there is content
     try:
         return response.json()
-    except:
-        return {"Error": "Issue with request"}
+    except requests.exceptions.JSONDecodeError:
+        return {"error": "Invalid JSON response", "raw": response.text}
 
 
 def play_song(session_id):

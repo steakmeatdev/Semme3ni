@@ -119,7 +119,7 @@ class PauseSong(APIView):
         room_code = self.request.session.get("room_code")
         room = Room.objects.filter(code=room_code)[0]
         if self.request.session.session_key == room.host or room.guest_can_pause:
-            pause_song(room.host)
+            print(pause_song(room.host))
             return Response({}, status=status.HTTP_204_NO_CONTENT)
         return Response({}, status=status.HTTP_403_FORBIDDEN)
 
